@@ -69,7 +69,7 @@ if [ ${new_ver} != ${VERSION} ]; then
   ./mcs_update.sh
 fi
 
-if [${AUTO_START_SERVER} == 1]; then
+if [ "$AUTO_START_SERVER" -eq 1 ]; then
   #サーバーを起動
   ./mcs_start.sh
 fi
