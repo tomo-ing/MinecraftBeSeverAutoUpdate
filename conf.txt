@@ -1,0 +1,9 @@
+# 前バージョン
+old_ver='0.0.0.0'
+
+# 最新バージョン
+new_ver='0.0.0.0'
+
+# セッション名
+SESSION_NAME01='bds01'
+// SESSION_NAME02='bds02'
