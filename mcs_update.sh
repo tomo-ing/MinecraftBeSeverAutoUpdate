@@ -127,8 +127,10 @@ for session in "${sessions_array[@]}"; do
     SESSION_SERVER_DIR=${SERVER_DIR}/${session}
     OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/bedrock_server${old_ver}
     # 前サーバーの削除
-    rm -r ${OLD_SESSION_SERVER_DIR}
-    sleep 10
+    if [ -d "$OLD_SESSION_SERVER_DIR" ]; then
+      rm -r ${OLD_SESSION_SERVER_DIR}
+      sleep 10
+    fi
 done
 
 # サーバーアップデート完了ログ出力
