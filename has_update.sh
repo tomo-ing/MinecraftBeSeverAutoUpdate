@@ -51,6 +51,7 @@ if [ ${new_ver} != ${VERSION} ]; then
   ./mcs_update.sh
 
 else
+  cd ${SERVER_DIR}
   # bedrock_serverの起動シェルの呼び出し
   ./mcs_start.sh
 fi
