@@ -34,7 +34,7 @@ AUTO_START_SERVER='1
 
 実行権限の付与
 ```
-cd your_file_directory
+cd /your_file_directory
 chmod +x has_update.sh  mcs_start.sh  mcs_stop.sh  mcs_update.sh
 ```
 自動更新の実行
@@ -49,7 +49,7 @@ crontab -e
 
 ---例
 ...
-50 3 * * * bash /home/minecraft/command/has_update.sh
+50 3 * * * bash /your_file_directory/has_update.sh
 ---
 ```
 
