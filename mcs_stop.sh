@@ -43,4 +43,4 @@ for session_name in "${sessions_array[@]}"; do
     # サーバー停止を待機
     sleep 5
   fi
-fi
+done
