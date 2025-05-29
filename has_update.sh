@@ -46,7 +46,7 @@ if [ ${new_ver} != ${VERSION} ]; then
   for session_name in "${sessions_array[@]}"; do
     screen -S ${session_name} -X stuff '\nsay This server will update after 1 minutes\n'
     screen -S ${session_name} -X stuff '\nsay The update will finish in a few minutes\n'
-  fi
+  done
   
   sleep 60
   
