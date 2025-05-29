@@ -47,7 +47,7 @@ cd ${SCRIPT_DIR}
 
 # 現在のサーバーのバージョン値と最新のバージョン値を比較する
 # バージョン値が異なる場合アップデートを行う。そうでない場合はそのままサーバーを起動する
-if [ ${new_ver} != ${VERSION} ]; then
+if [ "${new_ver}" != "${VERSION}" ]; then
 
   # 各セッション名でサーバー停止通知
   for session_name in "${sessions_array[@]}"; do
