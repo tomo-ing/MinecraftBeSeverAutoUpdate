@@ -1,4 +1,10 @@
-#!/bin/bash
+#!bin/bash
+
+#----------------------------------------------------
+#   Program name : mcs_stop.sh
+#   Date of program : 2025/5/29
+#   Author : tomo-ing
+#----------------------------------------------------
 
 # スクリプト自身のディレクトリを取得
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
