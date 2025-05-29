@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 #----------------------------------------------------
 #   Program name : mcs_start.sh
