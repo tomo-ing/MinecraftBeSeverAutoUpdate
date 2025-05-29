@@ -11,14 +11,6 @@ if [ ! -f "$CONF_FILE" ]; then
   exit 1
 fi
 
-# 設定ファイルから変数取得
-# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去後、数字とドット以外を削除
-new_ver=$(grep "^new_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
-
-# SERVER_DIR の取得 (例: SERVER_DIR='/home/minecraft')
-# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
-SERVER_DIR=$(grep "^SERVER_DIR=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
-
 # session_list の取得 (例: SESSION_NAME='s1, s2')
 # '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去 
 session_list=$(grep "^SESSION_NAME=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
