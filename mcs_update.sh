@@ -41,7 +41,7 @@ DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -
 start_date=`date "+%Y/%m/%d/%H:%M:%S"`
 start_time=`date +%s`
 
-echo -n ${old_ver} - ${new_ver}, ${start_date} >> /home/minecraft/command/updatelog.txt
+echo -n ${old_ver} - ${new_ver}, ${start_date} >> ${SCRIPT_DIR}/updatelog.txt
 
 # 配列の要素数をチェック (オプション)
 array_length=${#sessions_array[@]}
@@ -130,4 +130,4 @@ done
 end_date=`date "+%Y/%m/%d/%H:%M:%S"`
 end_time=`date +%s`
 
-echo , ${end_date}, $(($end_time - $start_time)) >> /home/minecraft/command/updatelog.txt
+echo , ${end_date}, $(($end_time - $start_time)) >> ${SCRIPT_DIR}/updatelog.txt
