@@ -70,6 +70,9 @@ OLD_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${old_ver}
 # verは設定ファイル内
 NEW_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${new_ver}
 
+ # 指定したフォルダが存在しない場合に作成。
+mkdir -p "$FIRST_SERVER_DIR"
+
 # 新しいサーバーのディレクトりの作成
 cd ${FIRST_SERVER_DIR}
 mkdir bedrock_server${new_ver}
@@ -99,6 +102,8 @@ if [ "${#remaining_sessions[@]}" -gt 0 ]; then
   for session in "${remaining_sessions[@]}"; do
     # serverのディレクトリ
     SESSION_SERVER_DIR=${SERVER_DIR}/${session}
+    # 指定したフォルダが存在しない場合に作成。
+    mkdir -p "$SESSION_SERVER_DIR"
     # サーバー2以降へのファイルコピー
     cp -r ${NEW_FIRST_SERVER_DIR} ${SESSION_SERVER_DIR}
     sleep 5
