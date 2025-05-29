@@ -48,8 +48,8 @@ does_screen_session_exist() {
 for session_name in "${sessions_array[@]}"; do
   if !does_screen_session_exist "$session_name"; then
     # bedrock_serverのディレクトリ
-    SESSION_DIR=${pass}/${session_name}
-    SERVER_SESSION_DIR=${pass}/${session_name}/bedrock_server${new_ver}
+    SESSION_DIR=${SERVER_DIR}/${session_name}
+    SERVER_SESSION_DIR=${SESSION_DIR}/bedrock_server${new_ver}
   
     # SESSION_NAMEは設定ファイル内
     cd ${SERVER_SESSION_DIR}
