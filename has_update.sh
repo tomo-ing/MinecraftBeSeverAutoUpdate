@@ -33,7 +33,7 @@ fi
 #    - `IFS=','` で内部フィールドセパレータをカンマに設定。
 #    - `read -r -a sessions_array <<< "$raw_session_list"` でカンマ区切りの文字列を配列に格納。
 #      (`-r` はバックスラッシュを解釈しない、`-a array` で配列に読み込む)
-IFS=',' read -r -a sessions_array_with_spaces <<< "$session_list_raw"
+IFS=',' read -r -a sessions_array_with_spaces <<< "$session_list"
 
 # 次に、各要素から前後の空白を除去した新しい配列を作成
 sessions_array=()
