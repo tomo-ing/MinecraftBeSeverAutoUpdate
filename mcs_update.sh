@@ -114,8 +114,8 @@ fi
 for session in "${sessions_array[@]}"; do
     # serverのディレクトリ
     SESSION_SERVER_DIR=${SERVER_DIR}/${session}
-    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${old_ver}
-    NEW_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${new_ver}
+    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/bedrock_server${old_ver}
+    NEW_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/bedrock_server${new_ver}
     # ワールドファイルコピー
     cp -r ${OLD_SESSION_SERVER_DIR}/worlds ${NEW_SESSION_SERVER_DIR}
     sleep 10
@@ -125,7 +125,7 @@ done
 for session in "${sessions_array[@]}"; do
     # serverのディレクトリ
     SESSION_SERVER_DIR=${SERVER_DIR}/${session}
-    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${old_ver}
+    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/bedrock_server${old_ver}
     # 前サーバーの削除
     rm -r ${OLD_SESSION_SERVER_DIR}
     sleep 10
