@@ -51,25 +51,6 @@ if [ ${new_ver} != ${VERSION} ]; then
   ./mcs_update.sh
 
 else
-
-  # bedrock_serverの起動
-  # bedrock_serverのディレクトリ
-  # verは設定ファイル内
-  SERVER_DIR01=${SERVER_DIR}/server/bedrock_server${new_ver}
-  # SERVER_DIR02=${SERVER_DIR}/server2/bedrock_server${new_ver}
-
-  # SESSION_NAMEは設定ファイル内
-  cd ${SERVER_DIR01}
-  cp -pf ${SERVER_DIR}/server.properties server.properties
-  cp -pf ${SERVER_DIR}/permissions.json permissions.json
-  cp -pf ${SERVER_DIR}/allowlist.json allowlist.json
-  LD_LIBRARY_PATH=. screen -dmS ${SESSION_NAME} ./bedrock_server > ./bedrock_server01.log &
-
-  # sleep 30
-
-  # cd ${SERVER_DIR02}
-  # cp -pf ${SERVER_DIR}/server.properties2 server.properties
-  # cp -pf ${SERVER_DIR}/permissions.json permissions.json
-  # LD_LIBRARY_PATH=. screen -dmS ${SESSION_NAME02} ./bedrock_server > ./bedrock_server02.log &
-
+  # bedrock_serverの起動シェルの呼び出し
+  ./mcs_start.sh
 fi
