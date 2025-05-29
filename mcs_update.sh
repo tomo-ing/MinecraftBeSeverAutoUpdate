@@ -55,7 +55,7 @@ start_time=`date +%s`
 echo -n ${old_ver} - ${new_ver}, ${start_date} >> ${SCRIPT_DIR}/updatelog.txt
 
 # 配列の要素数をチェック (オプション)
-array_length=${#sessions_array[@]}
+array_length="${#sessions_array[@]}"
 
 if [ "$array_length" -eq 1 ]; then
   first_session="${sessions_array[0]}"
