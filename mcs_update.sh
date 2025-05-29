@@ -43,45 +43,39 @@ start_time=`date +%s`
 
 echo -n ${old_ver} - ${new_ver}, ${start_date} >> /home/minecraft/command/updatelog.txt
 
+# 配列の要素数をチェック (オプション)
+array_length=${#sessions_array[@]}
+
+if [ "$array_length" -eq 1 ]; then
+  first_session="${sessions_array[0]}"
+  remaining_sessions=() # 空の配列
+else
+  # 最初の1つの要素を取得
+  first_session="${sessions_array[0]}"
+
+  # それ以外の要素 (2番目以降のすべての要素) を新しい配列として取得
+  # `${sessions_array[@]:1}` は、インデックス1 (2番目の要素) から始まるすべての要素を展開します。
+  # それを `()` で囲んで新しい配列 remaining_sessions に格納します。
+  remaining_sessions=("${sessions_array[@]:1}")
+fi
+
 # serverのディレクトリ
-SERVER_DIR1=/home/minecraft/server
-SERVER_DIR2=/home/minecraft/server2
+FIRST_SERVER_DIR=${SERVER_DIR}/${first_session}
 
 # 現在のbedrock_serverのディレクトリ
 # old_verは設定ファイル内
-SERVER_DIR01=/home/minecraft/server/bedrock_server${old_ver}
-SERVER_DIR02=/home/minecraft/server2/bedrock_server${old_ver}
+OLD_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${old_ver}
 
 # 新しいbedrock_serverのディレクトリ
 # verは設定ファイル内
-NEW_SERVER_DIR01=/home/minecraft/server/bedrock_server${new_ver}
-NEW_SERVER_DIR02=/home/minecraft/server2/bedrock_server${new_ver}
-
-
-# サーバーの停止
-screen -S ${SESSION_NAME01} -X stuff '\nstop\n'
-screen -S ${SESSION_NAME02} -X stuff '\nstop\n'
-sleep 5
-screen -r ${SESSION_NAME01}
-screen -r ${SESSION_NAME02}
-sleep 5
-
-# ワールドデータのバックアップ
-#cd /home/minecraft/server/bedrock_server${old_ver}/
-#tar cvf /home/share/mcsbackup/backup-${old_ver}-`date +%Y%m%d`.tar ./worlds
-#gzip /home/share/mcsbackup/backup-${old_ver}-`date +%Y%m%d`.tar
-#sleep 60
-#cd /home/minecraft/server2/bedrock_server${old_ver}/
-#tar cvf /home/share/mcsbackup2/backup-${old_ver}-`date +%Y%m%d`.tar ./worlds
-#gzip /home/share/mcsbackup2/backup-${old_ver}-`date +%Y%m%d`.tar
-#sleep 60
+NEW_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${new_ver}
 
 # 新しいサーバーのディレクトりの作成
-cd ${SERVER_DIR1}
+cd ${FIRST_SERVER_DIR}
 mkdir bedrock_server${new_ver}
 
 # サーバーのダウンロード
-cd ${NEW_SERVER_DIR01}
+cd ${NEW_FIRST_SERVER_DIR}
 curl -L -O https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-${new_ver}.zip
 wget -U -O "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" $DOWNLOAD_URL
 sleep 1
@@ -92,46 +86,45 @@ sleep 5
 
 # サーバーの一時起動
 # SESSION_NAMEは設定ファイル内
-LD_LIBRARY_PATH=. screen -dmS ${SESSION_NAME01} ./bedrock_server > ./bedrock_server01.log &
+LD_LIBRARY_PATH=. screen -dmS ${first_session} ./bedrock_server > ./${first_session}.log &
 sleep 10
-screen -S ${SESSION_NAME01} -X stuff '\nstop\n'
+screen -S ${first_session} -X stuff '\nstop\n'
 sleep 5
 
 # 新ワールドデータの削除
 rm -r worlds
 sleep 5
 
-# サーバー2へのファイルコピー
-cp -r ${NEW_SERVER_DIR01} ${SERVER_DIR2}
-sleep 5
+if [ "${#remaining_sessions[@]}" -gt 0 ]; then
+  for session in "${remaining_sessions[@]}"; do
+    # serverのディレクトリ
+    SESSION_SERVER_DIR=${SERVER_DIR}/${session}
+    # サーバー2以降へのファイルコピー
+    cp -r ${NEW_FIRST_SERVER_DIR} ${SESSION_SERVER_DIR}
+    sleep 5
+  done
+fi
 
-# ワールドデータのコピー
-cp -r ${SERVER_DIR01}/worlds ${NEW_SERVER_DIR01}
-sleep 30
-cp -r ${SERVER_DIR02}/worlds ${NEW_SERVER_DIR02}
-sleep 30
-
-# サーバーの起動
-cd ${NEW_SERVER_DIR01}
-cp -pf /home/minecraft/server.properties server.properties
-cp -pf /home/minecraft/permissions.json permissions.json
-cp -pf /home/minecraft/allowlist.json allowlist.json
-LD_LIBRARY_PATH=. screen -dmS ${SESSION_NAME01} ./bedrock_server > ./bedrock_server01.log &
-
-sleep 30
-
-cd ${NEW_SERVER_DIR02}
-cp -pf /home/minecraft/server.properties2 server.properties
-cp -pf /home/minecraft/permissions.json permissions.json
-LD_LIBRARY_PATH=. screen -dmS ${SESSION_NAME02} ./bedrock_server > ./bedrock_server02.log &
-
-sleep 30
+# ワールドファイルコピー
+for session in "${sessions_array[@]}"; do
+    # serverのディレクトリ
+    SESSION_SERVER_DIR=${SERVER_DIR}/${session}
+    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${old_ver}
+    NEW_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${new_ver}
+    # ワールドファイルコピー
+    cp -r ${OLD_SESSION_SERVER_DIR}/worlds ${NEW_SESSION_SERVER_DIR}
+    sleep 10
+done
 
 # 前サーバーの削除
-rm -r ${SERVER_DIR01}
-sleep 10
-rm -r ${SERVER_DIR02}
-sleep 10
+for session in "${sessions_array[@]}"; do
+    # serverのディレクトリ
+    SESSION_SERVER_DIR=${SERVER_DIR}/${session}
+    OLD_SESSION_SERVER_DIR=${SESSION_SERVER_DIR}/${old_ver}
+    # 前サーバーの削除
+    rm -r ${OLD_SESSION_SERVER_DIR}
+    sleep 10
+done
 
 # サーバーアップデート完了ログ出力
 end_date=`date "+%Y/%m/%d/%H:%M:%S"`
