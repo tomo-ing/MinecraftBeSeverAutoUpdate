@@ -33,7 +33,18 @@ fi
 #    - `IFS=','` で内部フィールドセパレータをカンマに設定。
 #    - `read -r -a sessions_array <<< "$raw_session_list"` でカンマ区切りの文字列を配列に格納。
 #      (`-r` はバックスラッシュを解釈しない、`-a array` で配列に読み込む)
-IFS=',' read -r -a sessions_array <<< "$session_list"
+IFS=',' read -r -a sessions_array_with_spaces <<< "$session_list_raw"
+
+# 次に、各要素から前後の空白を除去した新しい配列を作成
+sessions_array=()
+for item in "${sessions_array_with_spaces[@]}"; do
+  # Bashのパラメータ展開を使用して前後の空白を除去
+  # まず先頭の空白を除去
+  item_no_leading_space="${item#"${item%%[![:space:]]*}"}"
+  # 次に末尾の空白を除去
+  item_trimmed="${item_no_leading_space%"${item_no_leading_space##*[![:space:]]}"}"
+  sessions_array+=("$item_trimmed")
+done
 
 
 DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://minecraft.net/en-us/download/server/bedrock/ |  grep -o 'https.*/bin-linux/.*.zip')
