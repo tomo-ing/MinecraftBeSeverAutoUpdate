@@ -1,3 +1,4 @@
+#!bin/bash
 #----------------------------------------------------
 #   Program name : mcs_start.sh
 #   Date of program : 2025/5/29
