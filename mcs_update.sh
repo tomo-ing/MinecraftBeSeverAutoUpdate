@@ -71,11 +71,7 @@ OLD_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${old_ver}
 NEW_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${new_ver}
 
  # 指定したフォルダが存在しない場合に作成。
-mkdir -p "$FIRST_SERVER_DIR"
-
-# 新しいサーバーのディレクトりの作成
-cd ${FIRST_SERVER_DIR}
-mkdir bedrock_server${new_ver}
+mkdir -p "$NEW_FIRST_SERVER_DIR"
 
 # サーバーのダウンロード
 cd ${NEW_FIRST_SERVER_DIR}
