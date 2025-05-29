@@ -62,7 +62,7 @@ if [ "${new_ver}" != "${VERSION}" ]; then
     
   # conf.txtを更新
   OLD_VERSION=${new_ver}
-  sed -e "s/ver='${new_ver}'/ver='${VERSION}'/" -e "s/old_ver='${old_ver}'/old_ver='${OLD_VERSION}'/" ./conf.txt > tmp
+  sed -e "s/ver='${new_ver}'/ver='${VERSION}'/" -e "s/old_ver='${old_ver}'/old_ver='${OLD_VERSION}'/" ${SCRIPT_DIR}/conf.txt > tmp
   mv tmp ${SERVER_DIR}/conf.txt
 
   #アップデート用シェルの呼び出し
