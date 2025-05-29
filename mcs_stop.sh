@@ -44,11 +44,11 @@ does_screen_session_exist() {
   return $? # grepの終了ステータスをそのまま返す
 }
 
-# 各セッション名でサーバー起動
+# 各セッション名でサーバー停止
 for session_name in "${sessions_array[@]}"; do
   if does_screen_session_exist "$session_name"; then
-
-
-  # サーバーの起動を待機
-  sleep 20
+    screen -S ${session_name} -X stuff '\nstop\n'
+    # サーバー停止を待機
+    sleep 5
+  fi
 fi
