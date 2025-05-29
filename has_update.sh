@@ -66,10 +66,12 @@ if [ "${new_ver}" != "${VERSION}" ]; then
   mv tmp ${SERVER_DIR}/conf.txt
 
   #アップデート用シェルの呼び出し
+  cd ${SCRIPT_DIR}
   ./mcs_update.sh
 fi
 
 if [ "$AUTO_START_SERVER" -eq 1 ]; then
+  cd ${SCRIPT_DIR}
   #サーバーを起動
   ./mcs_start.sh
 fi
