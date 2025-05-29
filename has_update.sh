@@ -45,7 +45,7 @@ if [ ${new_ver} != ${VERSION} ]; then
   OLD_VERSION=${new_ver}
   sed -e "s/ver='${new_ver}'/ver='${VERSION}'/" -e "s/old_ver='${old_ver}'/old_ver='${OLD_VERSION}'/" ${SERVER_DIR}/conf.txt > tmp
   mv tmp ${SERVER_DIR}/conf.txt
-  cd ${SERVER_DIR}/
+  cd ${SERVER_DIR}
 
   #アップデート用シェルの呼び出し
   ./mcs_update.sh
