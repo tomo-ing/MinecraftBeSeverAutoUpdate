@@ -7,3 +7,6 @@ new_ver='0.0.0.0'
 # セッション名
 SESSION_NAME01='bds01'
 // SESSION_NAME02='bds02'
+
+# サーバーディレクトリ
+SERVER_DIR='Your Directory'
