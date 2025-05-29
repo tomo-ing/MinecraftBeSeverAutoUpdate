@@ -34,21 +34,32 @@ fi
 #      (`-r` はバックスラッシュを解釈しない、`-a array` で配列に読み込む)
 IFS=',' read -r -a sessions_array <<< "$session_list"
 
+does_screen_session_exist() {
+  local session_name="$1"
+  if [ -z "$session_name" ]; then
+    echo "エラー: セッション名が指定されていません。" >&2
+    return 2 # 不正な引数を示す終了ステータス
+  fi
+  screen -ls | grep -q -w "$session_name"
+  return $? # grepの終了ステータスをそのまま返す
+}
+  
 # 各セッション名でサーバー起動
 for session_name in "${sessions_array[@]}"; do
-  # bedrock_serverのディレクトリ
-  SESSION_DIR=${pass}/${session_name}
-  SERVER_SESSION_DIR=${pass}/${session_name}/bedrock_server${new_ver}
-
-  # SESSION_NAMEは設定ファイル内
-  cd ${SERVER_SESSION_DIR}
-  cp -pf ${SESSION_DIR}/server.properties server.properties
-  cp -pf ${SESSION_DIR}/permissions.json permissions.json
-  cp -pf ${SESSION_DIR}/allowlist.json allowlist.json
-
-  # bedrock_serverの起動
-  LD_LIBRARY_PATH=. screen -dmS ${session_name} ./bedrock_server > ./${session_name}.log &
-
-  # サーバーの起動を待機
-  sleep 20
+  if !does_screen_session_exist "$session_name"; then
+    # bedrock_serverのディレクトリ
+    SESSION_DIR=${pass}/${session_name}
+    SERVER_SESSION_DIR=${pass}/${session_name}/bedrock_server${new_ver}
+  
+    # SESSION_NAMEは設定ファイル内
+    cd ${SERVER_SESSION_DIR}
+    cp -pf ${SESSION_DIR}/server.properties server.properties
+    cp -pf ${SESSION_DIR}/permissions.json permissions.json
+    cp -pf ${SESSION_DIR}/allowlist.json allowlist.json
+  
+    # bedrock_serverの起動
+    LD_LIBRARY_PATH=. screen -dmS ${session_name} ./bedrock_server > ./${session_name}.log &
+  
+    # サーバーの起動を待機
+    sleep 20
 done
