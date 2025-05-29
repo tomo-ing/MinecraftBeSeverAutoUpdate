@@ -51,4 +51,4 @@ for session_name in "${sessions_array[@]}"; do
 
   # サーバーの起動を待機
   sleep 20
-fi
+done
