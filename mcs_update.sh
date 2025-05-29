@@ -1,15 +1,46 @@
 #!/bin/bash
 
-#設定ファイルから変数取得
-config=/home/minecraft/command/conf.txt
-old_ver=`grep 'old_ver' $config | sed -e 's/[^0-9.]//g'`
-new_ver=`grep 'new_ver' $config | sed -e 's/[^0-9.]//g'`
-SESSION_NAME01=`grep 'SESSION_NAME01' $config | sed -e 's/^.\{16\}//' -e 's/.\{1\}$//'`
-SESSION_NAME02=`grep 'SESSION_NAME02' $config | sed -e 's/^.\{16\}//' -e 's/.\{1\}$//'`
+# スクリプト自身のディレクトリを取得
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
+CONF_FILE=${SCRIPT_DIR}/conf.txt
+
+# conf.txt ファイルの存在確認
+if [ ! -f "$CONF_FILE" ]; then
+  echo "エラー: 設定ファイル '$CONF_FILE' が見つかりません。" >&2
+  exit 1
+fi
+
+# 設定ファイルから変数取得
+# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去後、数字とドット以外を削除
+old_ver=$(grep "^old_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
+new_ver=$(grep "^new_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
+
+# SERVER_DIR の取得 (例: SERVER_DIR='/home/minecraft')
+# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
+SERVER_DIR=$(grep "^SERVER_DIR=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
+
+# session_list の取得 (例: SESSION_NAME='s1, s2')
+# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去 
+session_list=$(grep "^SESSION_NAME=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
+
+if [ -z "$session_list" ]; then
+  echo "エラー: '$CONF_FILE' に SESSION_NAME の設定が見つからないか、値が空です。" >&2
+  exit 1
+fi
+
+# カンマを区切り文字としてセッション名を一つずつ処理
+#    - `IFS=','` で内部フィールドセパレータをカンマに設定。
+#    - `read -r -a sessions_array <<< "$raw_session_list"` でカンマ区切りの文字列を配列に格納。
+#      (`-r` はバックスラッシュを解釈しない、`-a array` で配列に読み込む)
+IFS=',' read -r -a sessions_array <<< "$session_list"
+
+
 DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://minecraft.net/en-us/download/server/bedrock/ |  grep -o 'https.*/bin-linux/.*.zip')
 
 start_date=`date "+%Y/%m/%d/%H:%M:%S"`
 start_time=`date +%s`
+
 echo -n ${old_ver} - ${new_ver}, ${start_date} >> /home/minecraft/command/updatelog.txt
 
 # serverのディレクトリ
