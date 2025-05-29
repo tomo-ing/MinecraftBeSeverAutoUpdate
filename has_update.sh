@@ -37,7 +37,7 @@ IFS=',' read -r -a sessions_array <<< "$session_list"
 
 # SERVER_DIR の取得 (例: SERVER_DIR='/home/minecraft')
 # '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
-SERVER_DIR=$(grep "^SERVER_DIR=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
+AUTO_START_SERVER=$(grep "^AUTO_START_SERVER=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9]//g')
 
 # 公式サイトからサーバーの最新のバージョン値取得
 VERSION=`curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.33 (KHTML, like Gecko) Chrome/90.0.$RandNum.212 Safari/537.33" https://minecraft.net/en-us/download/server/bedrock/ 2>/dev/null | grep bin-linux/bedrock-server | sed -e 's/.*<a href=\"\(https:.*\/bin-linux\/.*\.zip\).*/\1/' -e 's/[^0-9.]//g' -e 's/^.\{2\}//' -e 's/.\{1\}$//'`
@@ -68,5 +68,8 @@ if [ ${new_ver} != ${VERSION} ]; then
   #アップデート用シェルの呼び出し
   ./mcs_update.sh
 fi
-#サーバーを起動
-./mcs_start.sh
+
+if [${AUTO_START_SERVER} == 1]; then
+  #サーバーを起動
+  ./mcs_start.sh
+fi
