@@ -37,9 +37,12 @@ IFS=',' read -r -a sessions_array <<< "$session_list"
 
 # 公式サイトからサーバーの最新のバージョン値取得
 VERSION=`curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.33 (KHTML, like Gecko) Chrome/90.0.$RandNum.212 Safari/537.33" https://minecraft.net/en-us/download/server/bedrock/ 2>/dev/null | grep bin-linux/bedrock-server | sed -e 's/.*<a href=\"\(https:.*\/bin-linux\/.*\.zip\).*/\1/' -e 's/[^0-9.]//g' -e 's/^.\{2\}//' -e 's/.\{1\}$//'`
+
+# スクリプト自身のディレクトリに移動
+cd ${SCRIPT_DIR}
+
 # 現在のサーバーのバージョン値と最新のバージョン値を比較する
 # バージョン値が異なる場合アップデートを行う。そうでない場合はそのままサーバーを起動する
-cd ${SCRIPT_DIR}
 if [ ${new_ver} != ${VERSION} ]; then
 
   # 各セッション名でサーバー停止通知
@@ -60,9 +63,6 @@ if [ ${new_ver} != ${VERSION} ]; then
 
   #アップデート用シェルの呼び出し
   ./mcs_update.sh
-
-else
-  cd ${SERVER_DIR}
-  # bedrock_serverの起動シェルの呼び出し
-  ./mcs_start.sh
 fi
+#サーバーを起動
+./mcs_start.sh
