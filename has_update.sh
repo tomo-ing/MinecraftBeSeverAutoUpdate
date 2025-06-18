@@ -56,11 +56,24 @@ done
 # '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
 AUTO_START_SERVER=$(grep "^AUTO_START_SERVER=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9]//g')
 
-# 公式サイトからサーバーの最新のバージョン値取得
-VERSION=`curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.33 (KHTML, like Gecko) Chrome/90.0.$RandNum.212 Safari/537.33" https://minecraft.net/en-us/download/server/bedrock/ 2>/dev/null | grep bin-linux/bedrock-server | sed -e 's/.*<a href=\"\(https:.*\/bin-linux\/.*\.zip\).*/\1/' -e 's/[^0-9.]//g' -e 's/^.\{2\}//' -e 's/.\{1\}$//'`
-
 # スクリプト自身のディレクトリに移動
 cd ${SCRIPT_DIR}
+
+# Pythonスクリプトを呼び出し、結果を変数に格納
+# 標準エラー出力を /dev/null にリダイレクトして、エラーメッセージが結果に混ざらないようにする
+PYTHON_OUTPUT=$(python3 ./get_mc_version.py 2>/dev/null)
+
+# カンマで結果を分割し、VERSIONとDOWNLOAD_URLに代入
+# IFSを一時的に設定して読み込む
+IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
+
+# バージョン取得に失敗した場合のチェック
+if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
+  echo "エラー: 最新バージョンの取得に失敗しました。" >&2
+  # エラー処理をここに追加 (例: スクリプトを終了する、古いバージョンで続行する など)
+  exit 1 
+fi
+
 
 # 現在のサーバーのバージョン値と最新のバージョン値を比較する
 # バージョン値が異なる場合アップデートを行う。そうでない場合はそのままサーバーを起動する

@@ -52,8 +52,20 @@ for item in "${sessions_array_with_spaces[@]}"; do
   sessions_array+=("$item_trimmed")
 done
 
+# Pythonスクリプトを呼び出し、結果を変数に格納
+# 標準エラー出力を /dev/null にリダイレクトして、エラーメッセージが結果に混ざらないようにする
+PYTHON_OUTPUT=$(python3 ${SCRIPT_DIR}/get_mc_version.py 2>/dev/null)
 
-DOWNLOAD_URL=$(curl -H "Accept-Encoding: identity" -H "Accept-Language: en" -s -L -A "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" https://minecraft.net/en-us/download/server/bedrock/ |  grep -o 'https.*/bin-linux/.*.zip')
+# カンマで結果を分割し、VERSIONとDOWNLOAD_URLに代入
+# IFSを一時的に設定して読み込む
+IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
+
+# バージョン取得に失敗した場合のチェック
+if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
+  echo "エラー: 最新バージョンの取得に失敗しました。" >&2
+  # エラー処理をここに追加 (例: スクリプトを終了する、古いバージョンで続行する など)
+  exit 1 
+fi
 
 start_date=`date "+%Y/%m/%d/%H:%M:%S"`
 start_time=`date +%s`
