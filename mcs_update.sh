@@ -104,7 +104,7 @@ mkdir -p "$NEW_FIRST_SERVER_DIR"
 
 # サーバーのダウンロード
 cd ${NEW_FIRST_SERVER_DIR}
-curl -L -O https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-${new_ver}.zip
+curl -L -O $DOWNLOAD_URL
 wget -U -O "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" $DOWNLOAD_URL
 sleep 1
 
