@@ -24,6 +24,7 @@ fi
 # 設定ファイルから変数取得（共通関数を使用）
 old_ver=$(get_config_value "old_ver" "$CONF_FILE" true true)
 new_ver=$(get_config_value "new_ver" "$CONF_FILE" true true)
+OLD_DOWNLOAD_URL=$(get_config_value "DOWNLOAD_URL" "$CONF_FILE")
 SERVER_DIR=$(get_config_value "SERVER_DIR" "$CONF_FILE")
 
 # セッション配列の取得（共通関数を使用）
@@ -87,14 +88,17 @@ if [ "${new_ver}" != "${VERSION}" ]; then
   ./mcs_stop.sh
     
   # conf.txtを更新（共通関数を使用）
-  log_info "設定ファイルを更新しています..."
-  if ! update_multiple_config_values "$CONF_FILE" true \
-       "DOWNLOAD_URL=${DOWNLOAD_URL}" \
-       "new_ver=${VERSION}" \
-       "old_ver=${new_ver}"; then
-    log_error "設定ファイルの更新に失敗しました"
-    exit 1
-  fi
+  # log_info "設定ファイルを更新しています..."
+  # if ! update_multiple_config_values "$CONF_FILE" true \
+  #      "DOWNLOAD_URL=${DOWNLOAD_URL}" \
+  #      "new_ver=${VERSION}" \
+  #      "old_ver=${new_ver}"; then
+  #   log_error "設定ファイルの更新に失敗しました"
+  #   exit 1
+  # fi
+  sed -e "s/old_ver='${new_ver}'/new_ver='${VERSION}'/DOWNLOAD_URL='${DOWNLOAD_URL}'/" -e "s/old_ver='${old_ver}'/new_ver='${OLD_VERSION}'/DOWNLOAD_URL='${OLD_DOWNLOAD_URL}'/" ${SERVER_DIR}/conf.txt > tmp
+
+  mv tmp ${SERVER_DIR}/conf.txt
 
   # アップデート用シェルの呼び出し
   log_info "アップデートスクリプトを実行しています..."
