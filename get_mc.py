@@ -33,12 +33,12 @@ def get_minecraft_bedrock_info():
 
         time.sleep(10) # ページが完全に読み込まれるまで待機
         
-        try:
-            with open('debug_page_source.html', 'w', encoding='utf-8') as f:
-                f.write(driver.page_source)
-            print("デバッグ用ページソース 'debug_page_source.html' を保存しました。", file=sys.stderr)
-        except Exception as e:
-            print(f"ERROR: debug_page_source.html の保存中にエラー: {e}", file=sys.stderr)
+        # try:
+        #     with open('debug_page_source.html', 'w', encoding='utf-8') as f:
+        #         f.write(driver.page_source)
+        #     print("デバッグ用ページソース 'debug_page_source.html' を保存しました。", file=sys.stderr)
+        # except Exception as e:
+        #     print(f"ERROR: debug_page_source.html の保存中にエラー: {e}", file=sys.stderr)
 
         download_link_element = driver.find_element(By.XPATH, "//a[contains(@href, 'bin-linux/bedrock-server') and contains(@href, '.zip')]")
         
