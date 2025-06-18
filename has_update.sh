@@ -96,9 +96,11 @@ if [ "${new_ver}" != "${VERSION}" ]; then
   #   log_error "設定ファイルの更新に失敗しました"
   #   exit 1
   # fi
-  sed -e "s/old_ver='${new_ver}'/new_ver='${VERSION}'/DOWNLOAD_URL='${DOWNLOAD_URL}'/" -e "s/old_ver='${old_ver}'/new_ver='${OLD_VERSION}'/DOWNLOAD_URL='${OLD_DOWNLOAD_URL}'/" ${SERVER_DIR}/conf.txt > tmp
-
-  mv tmp ${SERVER_DIR}/conf.txt
+  sed -e "s#^old_ver='.*'#old_ver='${CURRENT_NEW_VER_VALUE}'#" \
+    -e "s#^new_ver='.*'#new_ver='${VERSION}'#" \
+    -e "s#^DOWNLOAD_URL='.*'#DOWNLOAD_URL='${DOWNLOAD_URL}'#" \
+    "${SCRIPT_DIR}/conf.txt" > "${SCRIPT_DIR}/conf.tmp" # 一時ファイルに書き出す
+  mv "${SCRIPT_DIR}/conf.tmp" "${SCRIPT_DIR}/conf.txt" # 元のファイルに戻す
 
   # アップデート用シェルの呼び出し
   log_info "アップデートスクリプトを実行しています..."
