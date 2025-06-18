@@ -20,6 +20,8 @@ def get_minecraft_bedrock_info():
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    chrome_options.add_argument(f"user-agent={user_agent}")
 
     driver = None
     try:
@@ -30,6 +32,13 @@ def get_minecraft_bedrock_info():
         driver.get("https://minecraft.net/en-us/download/server/bedrock/")
 
         time.sleep(10) # ページが完全に読み込まれるまで待機
+        
+        try:
+            with open('debug_page_source.html', 'w', encoding='utf-8') as f:
+                f.write(driver.page_source)
+            print("デバッグ用ページソース 'debug_page_source.html' を保存しました。", file=sys.stderr)
+        except Exception as e:
+            print(f"ERROR: debug_page_source.html の保存中にエラー: {e}", file=sys.stderr)
 
         download_link_element = driver.find_element(By.XPATH, "//a[contains(@href, 'bin-linux/bedrock-server') and contains(@href, '.zip')]")
         
