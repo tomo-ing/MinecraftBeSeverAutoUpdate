@@ -4,6 +4,9 @@ old_ver='0.0.0.0'
 # 最新バージョン
 new_ver='0.0.0.0'
 
+# ダウンロードURL
+DOWNLOAD_URL=''
+
 # セッション名
 # コンマ","区切りで複数指定可　例:SESSION_NAME='bds01, bds02'
 SESSION_NAME='bds01'

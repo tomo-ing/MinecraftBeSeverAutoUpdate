@@ -22,6 +22,8 @@ fi
 old_ver=$(grep "^old_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
 new_ver=$(grep "^new_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
 
+DOWNLOAD_URL=$(grep "^DOWNLOAD_URL=" "$CONF_FILE" 2>/dev/null | cut -d'=' -f2- | sed "s/^['\"]//;s/['\"]$//")
+
 # SERVER_DIR の取得 (例: SERVER_DIR='/home/minecraft')
 # '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
 SERVER_DIR=$(grep "^SERVER_DIR=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
@@ -54,18 +56,18 @@ done
 
 # Pythonスクリプトを呼び出し、結果を変数に格納
 # 標準エラー出力を /dev/null にリダイレクトして、エラーメッセージが結果に混ざらないようにする
-PYTHON_OUTPUT=$(python3 ${SCRIPT_DIR}/get_mc_version.py 2>/dev/null)
+# PYTHON_OUTPUT=$(python3 ${SCRIPT_DIR}/get_mc_version.py 2>/dev/null)
 
 # カンマで結果を分割し、VERSIONとDOWNLOAD_URLに代入
 # IFSを一時的に設定して読み込む
-IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
+# IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
 
 # バージョン取得に失敗した場合のチェック
-if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
-  echo "エラー: 最新バージョンの取得に失敗しました。" >&2
+# if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
+#   echo "エラー: 最新バージョンの取得に失敗しました。" >&2
   # エラー処理をここに追加 (例: スクリプトを終了する、古いバージョンで続行する など)
-  exit 1 
-fi
+#   exit 1 
+# fi
 
 start_date=`date "+%Y/%m/%d/%H:%M:%S"`
 start_time=`date +%s`
@@ -104,10 +106,16 @@ mkdir -p "$NEW_FIRST_SERVER_DIR"
 
 # サーバーのダウンロード
 cd ${NEW_FIRST_SERVER_DIR}
-curl -L -O $DOWNLOAD_URL
-wget -U -O "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; BEDROCK-UPDATER)" $DOWNLOAD_URL
-sleep 1
-
+# ダウンロード処理
+echo "Downloading Minecraft Bedrock Server..."
+if command -v curl >/dev/null 2>&1; then
+    curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -o "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"
+elif command -v wget >/dev/null 2>&1; then
+    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -O "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"
+else
+    echo "Error: curl or wget is required"
+    exit 1
+fi
 # ファイルの解凍
 unzip bedrock-server-${new_ver}.zip
 sleep 5

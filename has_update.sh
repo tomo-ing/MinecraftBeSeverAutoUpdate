@@ -58,7 +58,6 @@ AUTO_START_SERVER=$(grep "^AUTO_START_SERVER=" "$CONF_FILE" | cut -d'=' -f2- | s
 
 # スクリプト自身のディレクトリに移動
 cd ${SCRIPT_DIR}
-
 # Pythonスクリプトを呼び出し、結果を変数に格納
 # 標準エラー出力を /dev/null にリダイレクトして、エラーメッセージが結果に混ざらないようにする
 PYTHON_OUTPUT=$(python3 ./get_mc_version.py 2>/dev/null)
@@ -71,9 +70,16 @@ IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
 if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
   echo "エラー: 最新バージョンの取得に失敗しました。" >&2
   # エラー処理をここに追加 (例: スクリプトを終了する、古いバージョンで続行する など)
-  exit 1 
+else
+  echo "=== Minecraft Bedrock Server Version Check ==="
+  echo "Current version: ${OLD_VERSION}"
+  echo "Latest version:  ${VERSION}"
+  echo "Update needed:   $([ "${OLD_VERSION}" != "${VERSION}" ] && echo "Yes" || echo "No")"
 fi
 
+
+# スクリプト自身のディレクトリに移動
+cd ${SCRIPT_DIR}
 
 # 現在のサーバーのバージョン値と最新のバージョン値を比較する
 # バージョン値が異なる場合アップデートを行う。そうでない場合はそのままサーバーを起動する
@@ -92,8 +98,32 @@ if [ "${new_ver}" != "${VERSION}" ]; then
     
   # conf.txtを更新
   OLD_VERSION=${new_ver}
-  sed -e "s/ver='${new_ver}'/ver='${VERSION}'/" -e "s/old_ver='${old_ver}'/old_ver='${OLD_VERSION}'/" ${SCRIPT_DIR}/conf.txt > tmp
-  mv tmp ${SCRIPT_DIR}/conf.txt
+  update_config_file() {
+      local config_file="${SCRIPT_DIR}/conf.txt"
+      local temp_file="${config_file}.tmp.$$"
+      
+      # 設定ファイルの更新
+      sed -e "s/^DOWNLOAD_URL=.*/DOWNLOAD_URL='${DOWNLOAD_URL}'/" \
+          -e "s/^new_ver=.*/new_ver='${VERSION}'/" \
+          -e "s/^old_ver=.*/old_ver='${OLD_VERSION}'/" \
+          "${config_file}" > "${temp_file}"
+      
+      # 更新の成功確認
+      if [ $? -eq 0 ] && [ -s "${temp_file}" ]; then
+          mv "${temp_file}" "${config_file}"
+          echo "✅ Configuration file updated: ver='${VERSION}', old_ver='${OLD_VERSION}'"
+          return 0
+      else
+          rm -f "${temp_file}"
+          echo "❌ Error: Failed to update configuration file"
+          return 1
+      fi
+  }
+
+  # 関数の呼び出し
+  if ! update_config_file; then
+      exit 1
+  fi
 
   #アップデート用シェルの呼び出し
   cd ${SCRIPT_DIR}
