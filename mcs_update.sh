@@ -4,70 +4,43 @@
 #   Program name : mcs_update.sh
 #   Date of program : 2025/5/29
 #   Author : tomo-ing
+#   Modified : 2025/6/19 - 共通関数を使用するように更新
 #----------------------------------------------------
 
 # スクリプト自身のディレクトリを取得
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 
+# 共通関数の読み込み
+source "${SCRIPT_DIR}/common_functions.sh"
+
 CONF_FILE=${SCRIPT_DIR}/conf.txt
 
 # conf.txt ファイルの存在確認
 if [ ! -f "$CONF_FILE" ]; then
-  echo "エラー: 設定ファイル '$CONF_FILE' が見つかりません。" >&2
+  log_error "設定ファイル '$CONF_FILE' が見つかりません。"
   exit 1
 fi
 
-# 設定ファイルから変数取得
-# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去後、数字とドット以外を削除
-old_ver=$(grep "^old_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
-new_ver=$(grep "^new_ver=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//" | sed 's/[^0-9.]//g')
+# 設定ファイルから変数取得（共通関数を使用）
+old_ver=$(get_config_value "old_ver" "$CONF_FILE" true true)
+new_ver=$(get_config_value "new_ver" "$CONF_FILE" true true)
+DOWNLOAD_URL=$(get_config_value "DOWNLOAD_URL" "$CONF_FILE")
+SERVER_DIR=$(get_config_value "SERVER_DIR" "$CONF_FILE")
 
-DOWNLOAD_URL=$(grep "^DOWNLOAD_URL=" "$CONF_FILE" 2>/dev/null | cut -d'=' -f2- | sed "s/^['\"]//;s/['\"]$//")
-
-# SERVER_DIR の取得 (例: SERVER_DIR='/home/minecraft')
-# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去
-SERVER_DIR=$(grep "^SERVER_DIR=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
-
-# session_list の取得 (例: SESSION_NAME='s1, s2')
-# '^キー名=' で行を特定し、'='以降を取得、シングルクォートを除去 
-session_list=$(grep "^SESSION_NAME=" "$CONF_FILE" | cut -d'=' -f2- | sed "s/^'//;s/'$//")
-
-if [ -z "$session_list" ]; then
-  echo "エラー: '$CONF_FILE' に SESSION_NAME の設定が見つからないか、値が空です。" >&2
+# URL検証
+if ! validate_url "$DOWNLOAD_URL"; then
+  log_error "不正なダウンロードURLです: $DOWNLOAD_URL"
   exit 1
 fi
 
-# カンマを区切り文字としてセッション名を一つずつ処理
-#    - `IFS=','` で内部フィールドセパレータをカンマに設定。
-#    - `read -r -a sessions_array <<< "$raw_session_list"` でカンマ区切りの文字列を配列に格納。
-#      (`-r` はバックスラッシュを解釈しない、`-a array` で配列に読み込む)
-IFS=',' read -r -a sessions_array_with_spaces <<< "$session_list"
+# セッション配列の取得（共通関数を使用）
+if ! eval "$(get_session_array "$CONF_FILE")"; then
+  log_error "セッション名の取得に失敗しました。"
+  exit 1
+fi
 
-# 次に、各要素から前後の空白を除去した新しい配列を作成
-sessions_array=()
-for item in "${sessions_array_with_spaces[@]}"; do
-  # Bashのパラメータ展開を使用して前後の空白を除去
-  # まず先頭の空白を除去
-  item_no_leading_space="${item#"${item%%[![:space:]]*}"}"
-  # 次に末尾の空白を除去
-  item_trimmed="${item_no_leading_space%"${item_no_leading_space##*[![:space:]]}"}"
-  sessions_array+=("$item_trimmed")
-done
-
-# Pythonスクリプトを呼び出し、結果を変数に格納
-# 標準エラー出力を /dev/null にリダイレクトして、エラーメッセージが結果に混ざらないようにする
-# PYTHON_OUTPUT=$(python3 ${SCRIPT_DIR}/get_mc_version.py 2>/dev/null)
-
-# カンマで結果を分割し、VERSIONとDOWNLOAD_URLに代入
-# IFSを一時的に設定して読み込む
-# IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
-
-# バージョン取得に失敗した場合のチェック
-# if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
-#   echo "エラー: 最新バージョンの取得に失敗しました。" >&2
-  # エラー処理をここに追加 (例: スクリプトを終了する、古いバージョンで続行する など)
-#   exit 1 
-# fi
+log_info "Minecraftサーバーのアップデートを開始します"
+log_info "アップデート: ${old_ver} → ${new_ver}"
 
 start_date=`date "+%Y/%m/%d/%H:%M:%S"`
 start_time=`date +%s`
@@ -85,8 +58,6 @@ else
   first_session="${sessions_array[0]}"
 
   # それ以外の要素 (2番目以降のすべての要素) を新しい配列として取得
-  # `${sessions_array[@]:1}` は、インデックス1 (2番目の要素) から始まるすべての要素を展開します。
-  # それを `()` で囲んで新しい配列 remaining_sessions に格納します。
   remaining_sessions=("${sessions_array[@]:1}")
 fi
 
@@ -94,28 +65,49 @@ fi
 FIRST_SERVER_DIR=${SERVER_DIR}/${first_session}
 
 # 現在のbedrock_serverのディレクトリ
-# old_verは設定ファイル内
 OLD_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${old_ver}
 
 # 新しいbedrock_serverのディレクトリ
-# verは設定ファイル内
 NEW_FIRST_SERVER_DIR=${FIRST_SERVER_DIR}/bedrock_server${new_ver}
 
- # 指定したフォルダが存在しない場合に作成。
-mkdir -p "$NEW_FIRST_SERVER_DIR"
+# 指定したフォルダが存在しない場合に作成
+if ! ensure_directory "$NEW_FIRST_SERVER_DIR"; then
+  log_error "ディレクトリの作成に失敗しました: $NEW_FIRST_SERVER_DIR"
+  exit 1
+fi
 
 # サーバーのダウンロード
 cd ${NEW_FIRST_SERVER_DIR}
-# ダウンロード処理
-echo "Downloading Minecraft Bedrock Server..."
+
+log_info "Minecraftサーバーをダウンロード中..."
+download_success=false
+
 if command -v curl >/dev/null 2>&1; then
-    curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -o "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"
+    if curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -o "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"; then
+        download_success=true
+    fi
 elif command -v wget >/dev/null 2>&1; then
-    wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -O "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"
+    if wget --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" -O "bedrock-server-${new_ver}.zip" "$DOWNLOAD_URL"; then
+        download_success=true
+    fi
 else
-    echo "Error: curl or wget is required"
+    log_error "curl または wget が必要です"
     exit 1
 fi
+
+if [ "$download_success" = false ]; then
+    log_error "サーバーファイルのダウンロードに失敗しました"
+    exit 1
+fi
+
+echo "✅ Download completed successfully"
+
+# ファイル存在確認
+if [ ! -f "bedrock-server-${new_ver}.zip" ]; then
+    echo "❌ Error: Downloaded file not found"
+    exit 1
+fi
+
 # ファイルの解凍
 unzip bedrock-server-${new_ver}.zip
 sleep 5
