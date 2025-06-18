@@ -215,6 +215,12 @@ compare_versions() {
 validate_url() {
     local url="$1"
     
+    # 空のURLチェック
+    if [ -z "$url" ]; then
+        echo "Error: URL is empty or not provided" >&2
+        return 1
+    fi
+    
     # 基本的なURL形式チェック
     if [[ "$url" =~ ^https?://[^[:space:]]+$ ]]; then
         return 0

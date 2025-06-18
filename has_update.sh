@@ -40,21 +40,26 @@ cd ${SCRIPT_DIR}
 
 # Pythonスクリプトを呼び出し、結果を変数に格納
 log_info "最新バージョン情報を取得中..."
-PYTHON_OUTPUT=$(python3 ./get_mc_version.py 2>/dev/null)
+PYTHON_OUTPUT=$(python3 ./get_mc.py 2>/dev/null)
 
 # カンマで結果を分割し、VERSIONとDOWNLOAD_URLに代入
 # IFSを一時的に設定して読み込む
 IFS=',' read -r VERSION DOWNLOAD_URL <<< "$PYTHON_OUTPUT"
 
+# デバッグ出力
+log_info "Python出力: $PYTHON_OUTPUT"
+log_info "取得したバージョン: $VERSION"
+log_info "取得したURL: $DOWNLOAD_URL"
+
 # バージョン取得に失敗した場合のチェック
-if [ "$VERSION" = "UNKNOWN_VERSION" ]; then
+if [ "$VERSION" = "UNKNOWN_VERSION" ] || [ -z "$VERSION" ]; then
   log_error "最新バージョンの取得に失敗しました。"
   exit 1
 fi
 
 # URLの検証
 if ! validate_url "$DOWNLOAD_URL"; then
-  log_error "不正なダウンロードURLです: $DOWNLOAD_URL"
+  log_error "不正なダウンロードURLです: '$DOWNLOAD_URL'"
   exit 1
 fi
 
