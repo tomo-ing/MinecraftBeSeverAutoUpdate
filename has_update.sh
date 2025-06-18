@@ -65,9 +65,9 @@ fi
 
 # バージョン情報の表示
 log_info "=== Minecraft Bedrock Server Version Check ==="
-log_info "Current version: ${old_ver}"
+log_info "Current version: ${new_ver}"
 log_info "Latest version:  ${VERSION}"
-log_info "Update needed:   $([ "${old_ver}" != "${VERSION}" ] && echo "Yes" || echo "No")"
+log_info "Update needed:   $([ "${new_ver}" != "${VERSION}" ] && echo "Yes" || echo "No")"
 
 # 現在のサーバーのバージョン値と最新のバージョン値を比較する
 # バージョン値が異なる場合アップデートを行う。そうでない場合はそのままサーバーを起動する
