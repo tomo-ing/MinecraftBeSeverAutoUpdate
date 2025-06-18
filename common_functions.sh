@@ -74,90 +74,89 @@ get_session_array() {
     declare -p sessions_array
 }
 
-# 設定ファイル更新関数
+# 設定値更新関数を修正（正しい置換処理）
 update_config_value() {
     local key="$1"
-    local new_value="$2"
+    local value="$2"
     local config_file="$3"
-    local backup="${4:-true}"
     
-    # ファイル存在確認
     if [ ! -f "$config_file" ]; then
-        echo "Error: Configuration file not found: $config_file" >&2
+        log_error "Configuration file not found: $config_file"
         return 1
     fi
     
     local temp_file="${config_file}.tmp.$$"
     
-    # バックアップ作成
-    if [ "$backup" = "true" ]; then
-        cp "$config_file" "${config_file}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || {
-            echo "Warning: Failed to create backup" >&2
-        }
-    fi
+    # 既存の行を削除してから新しい値を追加する方式に変更
+    {
+        # 指定されたキーの行以外をコピー
+        grep -v "^${key}=" "$config_file"
+        # 新しい値を追加
+        echo "${key}='${value}'"
+    } > "$temp_file"
     
-    # 設定値の更新
-    sed "s/^${key}\s*=.*/${key}='${new_value}'/" "$config_file" > "$temp_file"
-    
-    # 更新の成功確認
+    # 更新結果を確認
     if [ $? -eq 0 ] && [ -s "$temp_file" ]; then
         mv "$temp_file" "$config_file"
-        echo "✅ Updated ${key}='${new_value}' in $config_file"
+        log_info "Updated ${key} = '${value}'"
         return 0
     else
         rm -f "$temp_file"
-        echo "Error: Failed to update ${key} in $config_file" >&2
+        log_error "Failed to update ${key}"
         return 1
     fi
 }
 
-# 複数設定値の一括更新関数
+# 複数値更新関数も修正
 update_multiple_config_values() {
     local config_file="$1"
     shift
-    local backup="${1:-true}"
     
-    # ファイル存在確認
     if [ ! -f "$config_file" ]; then
-        echo "Error: Configuration file not found: $config_file" >&2
+        log_error "Configuration file not found: $config_file"
         return 1
     fi
     
+    log_info "Updating configuration file: $config_file"
+    
     local temp_file="${config_file}.tmp.$$"
-    local update_commands=""
+    cp "$config_file" "$temp_file"
     
-    # バックアップ作成
-    if [ "$backup" = "true" ]; then
-        cp "$config_file" "${config_file}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || {
-            echo "Warning: Failed to create backup" >&2
-        }
-    fi
-    
-    # 更新コマンドの構築（キー=値のペアを処理）
+    # 各key=value ペアを処理
     while [ $# -gt 0 ]; do
-        local key_value="$1"
-        if [[ "$key_value" == *"="* ]]; then
-            local key="${key_value%%=*}"
-            local value="${key_value#*=}"
-            update_commands="${update_commands} -e \"s/^${key}\\s*=.*/${key}='${value}'/\""
+        local key="$1"
+        local value="$2"
+        shift 2
+        
+        log_info "Processing: ${key} = ${value}"
+        
+        # 指定されたキーの行を削除してから新しい値を追加
+        {
+            grep -v "^${key}=" "$temp_file"
+            echo "${key}='${value}'"
+        } > "${temp_file}.new"
+        
+        if [ $? -eq 0 ] && [ -s "${temp_file}.new" ]; then
+            mv "${temp_file}.new" "$temp_file"
+        else
+            log_error "Failed to update $key in configuration"
+            rm -f "$temp_file" "${temp_file}.new"
+            return 1
         fi
-        shift
     done
     
-    # sedで一括更新
-    eval "sed $update_commands \"$config_file\"" > "$temp_file"
-    
-    # 更新の成功確認
-    if [ $? -eq 0 ] && [ -s "$temp_file" ]; then
+    # 最終的な更新
+    if [ -s "$temp_file" ]; then
         mv "$temp_file" "$config_file"
-        echo "✅ Configuration file updated successfully"
+        log_info "All configuration values updated successfully"
         return 0
     else
         rm -f "$temp_file"
-        echo "Error: Failed to update configuration file" >&2
+        log_error "Failed to update configuration file"
         return 1
     fi
 }
+
 
 # ログ出力関数
 log_message() {
@@ -221,11 +220,11 @@ validate_url() {
         return 1
     fi
     
-    # 基本的なURL形式チェック
-    if [[ "$url" =~ ^https?://[^[:space:]]+$ ]]; then
+    # 基本的なURL形式チェック（より寛容な正規表現）
+    if [[ "$url" =~ ^https?://[a-zA-Z0-9.-]+/.*$ ]]; then
         return 0
     else
-        echo "Error: Invalid URL format: $url" >&2
+        echo "Error: Invalid URL format: '$url'" >&2
         return 1
     fi
 }
